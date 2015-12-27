@@ -1,0 +1,202 @@
+//
+//  ParticleGenerator.swift
+//  SAParticleAnimator
+//
+//  Created by Stefan Arambasich on 12/26/2015.
+//
+//  Copyright (c) 2015-2016 Stefan Arambasich. All rights reserved.
+//
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+//
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
+
+
+import Foundation
+import UIKit
+
+/// The type for a particle (typealias)
+typealias Particle = UIBezierPath
+
+/**
+    Coordinates with `ParticleFactory` to generate particles on a 
+    reoccuring basis.
+*/
+class ParticleGenerator {
+    /// How many particles to generate at one unit (parcel) of time;
+    /// that is to say when the next frame is rendered, it shall contain 
+    /// `parcelSize` particles
+    var parcelSize = 10
+    /// Desired colors of the particles
+    var colors = [UIColor]()
+    /// Minimum acceptable radius size
+    var minimumRadius = 1.0
+    /// Minimum acceptable radius size
+    var maxRadius = 8.0
+    /// The view these particles are generated in (weak ref)
+    weak var view: UIView?
+    /// The rectangle descirbed from view of the generator area
+    
+    /// Tells whether the generator is running or not
+    var started: Bool {
+        return displayLink != nil
+    }
+    
+    
+    /// Strong ref to displaylink to coordinate drawing with screen
+    private var displayLink: CADisplayLink?
+    
+    /**
+        Start the generating of particles.
+    */
+    func start() {
+        displayLink = CADisplayLink(target: self, selector: "update:")
+        displayLink?.addToRunLoop(NSRunLoop.currentRunLoop(), forMode: NSRunLoopCommonModes)
+    }
+    
+    /**
+        Stops the generator from generating more particles.
+    */
+    func stop() {
+        displayLink?.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSRunLoopCommonModes)
+        displayLink = nil
+    }
+    
+    /**
+        Generates a parcel of particles accordinng to the options.
+     
+        - returns: A collection of particles.
+    */
+    private func makeParcel() -> [Particle] {
+        var result = [Particle]()
+        for _ in 0 ..< parcelSize {
+            let x = CGFloat(arc4random_uniform(UInt32(view?.frame.size.width ?? 0.0))),
+                y = CGFloat(arc4random_uniform(UInt32(maxRadius))),
+                size = CGFloat(arc4random_uniform(UInt32(self.maxRadius))) + CGFloat(self.minimumRadius),
+                rect = CGRect(x: x, y: y, width: size, height: size)
+            
+            result.append(ParticleFactory.particleWithRect(rect))
+        }
+        return result
+    }
+    
+    private var lastTimestamp: CFTimeInterval = 0.0
+    @objc func update(displayLink: CADisplayLink) {
+        if displayLink.timestamp - lastTimestamp >= 1.0 {
+            lastTimestamp = displayLink.timestamp
+            
+            let particleLayers: [CAShapeLayer] = makeParcel().map {
+                let l = CAShapeLayer()
+                l.contentsGravity = "center"
+                l.frame = CGRect(x: 0.0, y: 0.0, width: maxRadius, height: maxRadius)
+                l.path = $0.CGPath
+                l.fillColor = colors.random?.CGColor ?? UIColor.redColor().CGColor
+                return l
+            }
+            _ = particleLayers.map {
+                ParticleAnimator.animationForLayer($0)
+                FrameAnimator.animationForLayer($0, inRect: view!.frame)
+                view?.layer.insertSublayer($0, atIndex: 0)
+            }
+        }
+    }
+}
+
+/**
+    Creates new particles with configurable options
+*/
+struct ParticleFactory {
+    /**
+        Creates a particle (`UIBezierPath`) with the given rect and color.
+     
+        - parameter rect: The desired rectangle of the particle.
+        - parameter color: The particle's color
+     
+        - returns: A particle according to the parameters.
+    */
+    static func particleWithRect(rect: CGRect) -> Particle {
+        return UIBezierPath(ovalInRect: rect)
+    }
+}
+
+/**
+    Puts together animations for a particle
+*/
+struct ParticleAnimationFactory {
+    static func particleAnimation(rect: CGRect) -> CAAnimation {
+        let animation: CAAnimation
+        switch arc4random_uniform(3) {
+        default:
+            animation = opacityAnimation()
+        }
+        return animation
+    }
+    
+    private static func opacityAnimation(minOpacity: CGFloat = 0.15, maxOpacity: CGFloat = 0.75) -> CAAnimation {
+        let a = CABasicAnimation(keyPath: "opacity")
+        a.beginTime = CACurrentMediaTime() + 1.0 / CFTimeInterval(arc4random_uniform(5))
+        a.fromValue = 0.15
+        a.toValue = 0.75
+        a.duration = max(0.3, CFTimeInterval(arc4random_uniform(50) / 10))
+        a.autoreverses = true
+        a.repeatCount = Float(CGFloat.max)
+        return a
+    }
+}
+
+/**
+    Creates animations for particles selves.
+*/
+struct ParticleAnimator {
+    static func animationForLayer(layer: CALayer) {
+        let a = ParticleAnimationFactory.particleAnimation(layer.frame)
+//        layer.opacity = 0.0
+        layer.addAnimation(a, forKey: "particle.animations")
+    }
+}
+
+/**
+    Creates animations for particles in frame.
+*/
+struct FrameAnimator {
+    static func animationForLayer(layer: CALayer, inRect rect: CGRect) {
+        @objc class Responder: NSObject {
+            private weak var layer: CALayer!
+            
+            private override func animationDidStop(anim: CAAnimation, finished flag: Bool) {
+                layer!.removeFromSuperlayer()
+            }
+        }
+        let a = CABasicAnimation(keyPath: "transform.translation.y")
+        a.fromValue = rect.size.height + 44.0
+        a.toValue = 0.0
+        a.duration = CFTimeInterval(arc4random_uniform(200) + 60) / 10.0
+        a.removedOnCompletion = true
+        let r = Responder()
+        r.layer = layer
+        a.delegate = r
+        a.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
+        
+        layer.addAnimation(a, forKey: "particle.translation")
+    }
+}
+
+private extension Array {
+    /// Find random element in array or nil
+    var random: Array.Element? {
+        return count > 0 ? self[Int(arc4random_uniform(UInt32(count)))] : nil
+    }
+}
