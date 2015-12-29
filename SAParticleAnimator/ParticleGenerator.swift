@@ -148,8 +148,8 @@ struct ParticleAnimationFactory {
     private static func opacityAnimation(minOpacity: CGFloat = 0.15, maxOpacity: CGFloat = 0.75) -> CAAnimation {
         let a = CABasicAnimation(keyPath: "opacity")
         a.beginTime = CACurrentMediaTime() + 1.0 / CFTimeInterval(arc4random_uniform(5))
-        a.fromValue = 0.15
-        a.toValue = 0.75
+        a.fromValue = minOpacity
+        a.toValue = maxOpacity
         a.duration = max(0.3, CFTimeInterval(arc4random_uniform(50) / 10))
         a.autoreverses = true
         a.repeatCount = Float(CGFloat.max)
