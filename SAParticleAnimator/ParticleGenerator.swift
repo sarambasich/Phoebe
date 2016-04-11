@@ -63,7 +63,7 @@ class ParticleGenerator {
         Start the generating of particles.
     */
     func start() {
-        displayLink = CADisplayLink(target: self, selector: "update:")
+        displayLink = CADisplayLink(target: self, selector: #selector(ParticleGenerator.update(_:)))
         displayLink?.addToRunLoop(NSRunLoop.currentRunLoop(), forMode: NSRunLoopCommonModes)
     }
     
