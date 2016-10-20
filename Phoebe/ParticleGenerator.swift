@@ -1,6 +1,6 @@
 //
 //  ParticleGenerator.swift
-//  SAParticleAnimator
+//  Phoebe
 //
 //  Created by Stefan Arambasich on 12/26/2015.
 //
@@ -35,52 +35,59 @@ typealias Particle = UIBezierPath
     Coordinates with `ParticleFactory` to generate particles on a 
     reoccuring basis.
 */
-class ParticleGenerator {
+open class ParticleGenerator {
+
     /// How many particles to generate at one unit (parcel) of time;
     /// that is to say when the next frame is rendered, it shall contain 
     /// `parcelSize` particles
-    var parcelSize = 10
+    open var parcelSize = 10
     /// Desired colors of the particles
-    var colors = [UIColor]()
+    open var colors = [UIColor]()
     /// Minimum acceptable radius size
-    var minimumRadius = 1.0
+    open var minimumRadius = 1.0
     /// Minimum acceptable radius size
-    var maxRadius = 8.0
-    /// The view these particles are generated in (weak ref)
-    weak var view: UIView?
-    /// The rectangle descirbed from view of the generator area
+    open var maxRadius = 8.0
+    /// The view these particles are generated in
+    open weak var view: UIView?
     
     /// Tells whether the generator is running or not
-    var started: Bool {
+    public var started: Bool {
         return displayLink != nil
     }
+
+    public init() { }
+
+    fileprivate var lastTimestamp: CFTimeInterval = 0.0
     
     
     /// Strong ref to displaylink to coordinate drawing with screen
-    private var displayLink: CADisplayLink?
+    fileprivate var displayLink: CADisplayLink?
     
     /**
         Start the generating of particles.
     */
-    func start() {
+    open func start() {
         displayLink = CADisplayLink(target: self, selector: #selector(ParticleGenerator.update(_:)))
-        displayLink?.addToRunLoop(NSRunLoop.currentRunLoop(), forMode: NSRunLoopCommonModes)
+        displayLink?.add(to: RunLoop.current, forMode: RunLoopMode.commonModes)
     }
     
     /**
         Stops the generator from generating more particles.
     */
-    func stop() {
-        displayLink?.removeFromRunLoop(NSRunLoop.currentRunLoop(), forMode: NSRunLoopCommonModes)
+    open func stop() {
+        displayLink?.remove(from: RunLoop.current, forMode: RunLoopMode.commonModes)
         displayLink = nil
     }
-    
+}
+
+extension ParticleGenerator {
+
     /**
         Generates a parcel of particles accordinng to the options.
      
         - returns: A collection of particles.
     */
-    private func makeParcel() -> [Particle] {
+    fileprivate func makeParcel() -> [Particle] {
         var result = [Particle]()
         for _ in 0 ..< parcelSize {
             let x = CGFloat(arc4random_uniform(UInt32(view?.frame.size.width ?? 0.0))),
@@ -93,8 +100,7 @@ class ParticleGenerator {
         return result
     }
     
-    private var lastTimestamp: CFTimeInterval = 0.0
-    @objc func update(displayLink: CADisplayLink) {
+    @objc func update(_ displayLink: CADisplayLink) {
         if displayLink.timestamp - lastTimestamp >= 1.0 {
             lastTimestamp = displayLink.timestamp
             
@@ -102,14 +108,14 @@ class ParticleGenerator {
                 let l = CAShapeLayer()
                 l.contentsGravity = "center"
                 l.frame = CGRect(x: 0.0, y: 0.0, width: maxRadius, height: maxRadius)
-                l.path = $0.CGPath
-                l.fillColor = colors.random?.CGColor ?? UIColor.redColor().CGColor
+                l.path = $0.cgPath
+                l.fillColor = colors.random?.cgColor ?? UIColor.red.cgColor
                 return l
             }
             _ = particleLayers.map {
                 ParticleAnimator.animationForLayer($0)
                 FrameAnimator.animationForLayer($0, inRect: view!.frame)
-                view?.layer.insertSublayer($0, atIndex: 0)
+                view?.layer.insertSublayer($0, at: 0)
             }
         }
     }
@@ -119,6 +125,7 @@ class ParticleGenerator {
     Creates new particles with configurable options
 */
 struct ParticleFactory {
+
     /**
         Creates a particle (`UIBezierPath`) with the given rect and color.
      
@@ -127,8 +134,8 @@ struct ParticleFactory {
      
         - returns: A particle according to the parameters.
     */
-    static func particleWithRect(rect: CGRect) -> Particle {
-        return UIBezierPath(ovalInRect: rect)
+    static func particleWithRect(_ rect: CGRect) -> Particle {
+        return UIBezierPath(ovalIn: rect)
     }
 }
 
@@ -136,7 +143,8 @@ struct ParticleFactory {
     Puts together animations for a particle
 */
 struct ParticleAnimationFactory {
-    static func particleAnimation(rect: CGRect) -> CAAnimation {
+
+    static func particleAnimation(_ rect: CGRect) -> CAAnimation {
         let animation: CAAnimation
         switch arc4random_uniform(3) {
         default:
@@ -145,14 +153,14 @@ struct ParticleAnimationFactory {
         return animation
     }
     
-    private static func opacityAnimation(minOpacity: CGFloat = 0.15, maxOpacity: CGFloat = 0.75) -> CAAnimation {
+    fileprivate static func opacityAnimation(_ minOpacity: CGFloat = 0.15, maxOpacity: CGFloat = 0.75) -> CAAnimation {
         let a = CABasicAnimation(keyPath: "opacity")
         a.beginTime = CACurrentMediaTime() + 1.0 / CFTimeInterval(arc4random_uniform(5))
         a.fromValue = minOpacity
         a.toValue = maxOpacity
         a.duration = max(0.3, CFTimeInterval(arc4random_uniform(50) / 10))
         a.autoreverses = true
-        a.repeatCount = Float(CGFloat.max)
+        a.repeatCount = Float(CGFloat.greatestFiniteMagnitude)
         return a
     }
 }
@@ -161,10 +169,11 @@ struct ParticleAnimationFactory {
     Creates animations for particles selves.
 */
 struct ParticleAnimator {
-    static func animationForLayer(layer: CALayer) {
+
+    static func animationForLayer(_ layer: CALayer) {
         let a = ParticleAnimationFactory.particleAnimation(layer.frame)
 //        layer.opacity = 0.0
-        layer.addAnimation(a, forKey: "particle.animations")
+        layer.add(a, forKey: "particle.animations")
     }
 }
 
@@ -172,11 +181,12 @@ struct ParticleAnimator {
     Creates animations for particles in frame.
 */
 struct FrameAnimator {
-    static func animationForLayer(layer: CALayer, inRect rect: CGRect) {
-        @objc class Responder: NSObject {
-            private weak var layer: CALayer!
+
+    static func animationForLayer(_ layer: CALayer, inRect rect: CGRect) {
+        @objc class Responder: NSObject, CAAnimationDelegate {
+            fileprivate weak var layer: CALayer!
             
-            private override func animationDidStop(anim: CAAnimation, finished flag: Bool) {
+            fileprivate func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
                 layer!.removeFromSuperlayer()
             }
         }
@@ -184,17 +194,18 @@ struct FrameAnimator {
         a.fromValue = rect.size.height + 44.0
         a.toValue = 0.0
         a.duration = CFTimeInterval(arc4random_uniform(200) + 60) / 10.0
-        a.removedOnCompletion = true
+        a.isRemovedOnCompletion = true
         let r = Responder()
         r.layer = layer
         a.delegate = r
         a.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionLinear)
         
-        layer.addAnimation(a, forKey: "particle.translation")
+        layer.add(a, forKey: "particle.translation")
     }
 }
 
 private extension Array {
+
     /// Find random element in array or nil
     var random: Array.Element? {
         return count > 0 ? self[Int(arc4random_uniform(UInt32(count)))] : nil

@@ -1,6 +1,6 @@
 //
-//  SAParticleAnimatorTests.swift
-//  SAParticleAnimatorTests
+//  ViewController.swift
+//  Phoebe
 //
 //  Created by Stefan Arambasich on 12/26/2015.
 //
@@ -25,31 +25,32 @@
 //  THE SOFTWARE.
 
 
-import XCTest
-@testable import SAParticleAnimator
+import UIKit
 
-class SAParticleAnimatorTests: XCTestCase {
-    
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+import Phoebe
+
+class ViewController: UIViewController {
+
+    fileprivate var particleGenerator = ParticleGenerator()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        configureParticleGenerator()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        particleGenerator.start()
     }
     
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
+    fileprivate func configureParticleGenerator() {
+        particleGenerator.view = view
+        particleGenerator.parcelSize = 25
+        particleGenerator.minimumRadius = 0.5
+        particleGenerator.maxRadius = 8.0
+        particleGenerator.colors = [UIColor.blue, UIColor.green, UIColor.yellow]
     }
-    
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock {
-            // Put the code you want to measure the time of here.
-        }
-    }
-    
 }
+
