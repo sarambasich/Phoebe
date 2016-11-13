@@ -68,14 +68,15 @@ open class ParticleGenerator {
     */
     open func start() {
         displayLink = CADisplayLink(target: self, selector: #selector(ParticleGenerator.update(_:)))
-        displayLink?.add(to: RunLoop.current, forMode: RunLoopMode.commonModes)
+        displayLink?.add(to: RunLoop.current, forMode: .commonModes)
     }
     
     /**
         Stops the generator from generating more particles.
     */
     open func stop() {
-        displayLink?.remove(from: RunLoop.current, forMode: RunLoopMode.commonModes)
+        displayLink?.remove(from: RunLoop.current, forMode: .commonModes)
+        displayLink?.invalidate()
         displayLink = nil
     }
 }
@@ -184,10 +185,10 @@ struct FrameAnimator {
 
     static func animationForLayer(_ layer: CALayer, inRect rect: CGRect) {
         @objc class Responder: NSObject, CAAnimationDelegate {
-            fileprivate weak var layer: CALayer!
+            fileprivate weak var layer: CALayer?
             
             fileprivate func animationDidStop(_ anim: CAAnimation, finished flag: Bool) {
-                layer!.removeFromSuperlayer()
+                layer?.removeFromSuperlayer()
             }
         }
         let a = CABasicAnimation(keyPath: "transform.translation.y")
