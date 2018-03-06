@@ -31,7 +31,11 @@ import Phoebe
 
 class ViewController: UIViewController {
 
+<<<<<<< Updated upstream:Phoebe/ViewController.swift
     fileprivate var particleGenerator = ParticleGenerator()
+=======
+    private var particleGenerator = ParticleGenerator()
+>>>>>>> Stashed changes:SAParticleAnimator/ViewController.swift
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,13 +48,20 @@ class ViewController: UIViewController {
         
         particleGenerator.start()
     }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
     
     fileprivate func configureParticleGenerator() {
         particleGenerator.view = view
-        particleGenerator.parcelSize = 25
         particleGenerator.minimumRadius = 0.5
         particleGenerator.maxRadius = 8.0
+<<<<<<< Updated upstream:Phoebe/ViewController.swift
         particleGenerator.colors = [UIColor.blue, UIColor.green, UIColor.yellow]
+=======
+        particleGenerator.colors = [.blue, .green, .yellow]
+>>>>>>> Stashed changes:SAParticleAnimator/ViewController.swift
     }
 }
 

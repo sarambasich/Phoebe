@@ -1,6 +1,6 @@
 //
-//  PhoebeTests.swift
-//  PhoebeTests
+//  ViewController.swift
+//  Phoebe
 //
 //  Created by Stefan Arambasich on 12/26/2015.
 //
@@ -25,31 +25,34 @@
 //  THE SOFTWARE.
 
 
-import XCTest
-@testable import Phoebe
+import UIKit
 
-class PhoebeTests: XCTestCase {
-    
-    override func setUp() {
-        super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+class ViewController: UIViewController {
+
+    fileprivate var particleGenerator = ParticleGenerator()
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        configureParticleGenerator()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        particleGenerator.start()
+    }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
     }
     
-    override func tearDown() {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-        super.tearDown()
+    fileprivate func configureParticleGenerator() {
+        particleGenerator.parcelSize = 20
+        particleGenerator.view = view
+        particleGenerator.minimumRadius = 0.5
+        particleGenerator.maxRadius = 8.0
+        particleGenerator.colors = [.blue, .green, .yellow]
     }
-    
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
-    }
-    
 }
+
