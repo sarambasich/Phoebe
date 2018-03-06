@@ -49,7 +49,7 @@
 		F85680F31C2F1AA800A1BA2D /* PhoebeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PhoebeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F85680F71C2F1AA800A1BA2D /* PhoebeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoebeUITests.swift; sourceTree = "<group>"; };
 		F85680F91C2F1AA800A1BA2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F8C8A42A1C2F239300EE4EC0 /* ParticleGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParticleGenerator.swift; sourceTree = "<group>"; };
+		F8C8A42A1C2F239300EE4EC0 /* ParticleGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ParticleGenerator.swift; path = ../../ParticleGenerator.swift; sourceTree = "<group>"; };
 		F8F8CE2F204E424D00C07CAB /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
